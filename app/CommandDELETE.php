@@ -4,6 +4,7 @@
 	class CommandDELETE implements Command {
 		public function execute($data) {
 			$handle = fopen(DB_PATH, "r+");
+			$deleteOk = false; // Should we delete?
 
 			if (flock($handle, LOCK_EX)) { // Get lock
 				$text = fread($handle, filesize(DB_PATH));
@@ -12,6 +13,7 @@
 			    // Remove row
 				foreach ($rows as $row) {
 				    if ($data == $row["id"]) {
+				    	$deleteOk = true;
 				        unset($rows[$counter]);
 				        break;
 				    }
@@ -24,7 +26,11 @@
 				ftruncate($handle, 0);
 				rewind($handle);
 				fwrite($handle, $rows);
-				echo "</br><b>Row deleted.</b>";
+				if ($deleteOk == true) {
+					echo "</br><b>Row deleted.</b>";
+				} else {
+					echo "</br><b>ID not found</b>  ";
+				}
 				flock($handle, LOCK_UN);    // release the lock
 				
 			} else {
